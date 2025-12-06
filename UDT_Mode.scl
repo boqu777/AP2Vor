@@ -1,0 +1,19 @@
+// =================================================================================
+// UDT: Betriebsarten (Mode)
+// =================================================================================
+// Baustein:      UDT_Mode
+// Functionality: UDT für Betriebsarten
+// =================================================================================
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =================================================================================
+
+TYPE UDT_Mode
+    STRUCT
+        Einrichten      : BOOL; // Handbetrieb aktiv
+        Automatik       : BOOL; // Automatikbetrieb aktiv
+        Init            : BOOL; // Initialisierung angefordert
+    END_STRUCT
+END_TYPE

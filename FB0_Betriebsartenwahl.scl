@@ -1,0 +1,50 @@
+FUNCTION_BLOCK FB0
+TITLE = 'Betriebsartenwahl'
+// =============================================================================
+// Autor:         Boris Quade (66528)
+// =============================================================================
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Functionality: Ermittelt die aktive Betriebsart und prüft die Sicherheitskette.
+//                Schreibt Ergebnisse direkt in den globalen DB1.
+// -----------------------------------------------------------------------------
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+VAR_TEMP
+    tempFreigabe : BOOL; // Zwischenspeicher für Sammelfreigabe
+END_VAR
+
+BEGIN
+    // -------------------------------------------------------------------------
+    // 1. Sicherheitsfreigaben prüfen
+    // -------------------------------------------------------------------------
+    // Bedingungen: Not-Halt OK (-KE2), Druck OK (-BP1), Steuerung Ein (-SJ3), Motorschutz OK (-FC7)
+    tempFreigabe := "-KE2" AND "-BP1" AND "-SJ3" AND "-FC7";
+    
+    // Status in den globalen Datenbaustein schreiben
+    DB1.Status.Anlage_Bereit := tempFreigabe;
+
+    // -------------------------------------------------------------------------
+    // 2. Betriebsart ermitteln
+    // -------------------------------------------------------------------------
+    // Zuerst beide Modi zurücksetzen (Sicherer Zustand)
+    DB1.Mode.Einrichten := FALSE;
+    DB1.Mode.Automatik  := FALSE;
+
+    // Modus nur setzen, wenn Anlage bereit ist
+    IF tempFreigabe THEN
+        // Wahlschalter -SJ4: FALSE = Einrichten, TRUE = Automatik
+        IF NOT "-SJ4" THEN
+            DB1.Mode.Einrichten := TRUE;
+        ELSE
+            DB1.Mode.Automatik  := TRUE;
+        END_IF;
+    END_IF;
+
+END_FUNCTION_BLOCK

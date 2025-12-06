@@ -1,0 +1,28 @@
+FUNCTION_BLOCK FB100
+TITLE = 'Taktgeber'
+// =============================================================================
+// Autor:         Boris Quade (66528)
+// =============================================================================
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Functionality: Erzeugt 1Hz Takt für DB1.Status.Takt_1Hz
+// -----------------------------------------------------------------------------
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+VAR
+    instTimerPuls  : TON; 
+    instTimerPause : TON; 
+END_VAR
+
+BEGIN
+    instTimerPuls(IN := NOT instTimerPause.Q, PT := T#500ms);
+    instTimerPause(IN := instTimerPuls.Q, PT := T#500ms);
+    
+    DB1.Status.Takt_1Hz := instTimerPuls.Q;
+END_FUNCTION_BLOCK

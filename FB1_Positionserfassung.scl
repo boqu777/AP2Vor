@@ -1,0 +1,55 @@
+FUNCTION_BLOCK FB1
+TITLE = 'Positionserfassung'
+// =============================================================================
+// Autor:         Boris Quade (66528)
+// =============================================================================
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Functionality: Erfasst die Position der X-Achse über Inkrementalgeber (-BG12).
+//                Zählt hoch bei Linksfahrt, runter bei Rechtsfahrt.
+//                Referenziert (Nullt) bei Endlage Rechts (-BG13).
+// -----------------------------------------------------------------------------
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+VAR
+    statBG12_Alt : BOOL; // Speicher für Flankenerkennung (statisch)
+END_VAR
+
+VAR_TEMP
+    tempFlanke : BOOL;   // Flankenimpuls (temporär)
+END_VAR
+
+BEGIN
+    // -------------------------------------------------------------------------
+    // 1. Referenzieren (Nullpunkt setzen)
+    // -------------------------------------------------------------------------
+    // Wenn Endlage Rechts (-BG13) erreicht, ist Position = 0
+    IF "-BG13" THEN
+        DB1.Status.IstPosition := 0;
+    END_IF;
+
+    // -------------------------------------------------------------------------
+    // 2. Zähllogik (Inkrementalgeber)
+    // -------------------------------------------------------------------------
+    // Positive Flanke am Zählsensor -BG12 erkennen
+    tempFlanke := "-BG12" AND NOT statBG12_Alt;
+    statBG12_Alt := "-BG12"; // Altwert für nächsten Zyklus speichern
+
+    IF tempFlanke THEN
+        // Bei Linksfahrt: Hochzählen (bis max. 999)
+        IF DB1.Cmd.X_Achse_Links AND (DB1.Status.IstPosition < 999) THEN
+           DB1.Status.IstPosition := DB1.Status.IstPosition + 1;
+            
+        // Bei Rechtsfahrt: Runterzählen (bis min. 0)
+        ELSIF DB1.Cmd.X_Achse_Rechts AND (DB1.Status.IstPosition > 0) THEN
+              DB1.Status.IstPosition := DB1.Status.IstPosition - 1;
+        END_IF;
+    END_IF;
+
+END_FUNCTION_BLOCK

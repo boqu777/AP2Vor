@@ -1,0 +1,21 @@
+// =============================================================================
+// Baustein:      DB1 "Global_Daten"
+// Functionality: Zentraler Speicher für den Datenaustausch zwischen FBs.
+//                Ersetzt globale Merker durch strukturierte UDTs.
+// =============================================================================
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+DATA_BLOCK DB1
+TITLE = 'Global_Daten'
+VERSION : '1.0'
+
+    STRUCT
+        Mode   : UDT_Mode;   // Betriebsarten (Hand/Auto)
+        Status : UDT_Status; // Prozesswerte und Status
+        Cmd    : UDT_Cmd;    // Befehle an die Hardware
+    END_STRUCT
+BEGIN
+END_DATA_BLOCK

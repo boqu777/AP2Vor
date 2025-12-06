@@ -1,0 +1,59 @@
+FUNCTION_BLOCK FB600
+TITLE = 'Hardware_Ausgabe'
+// =============================================================================
+// Autor:         Boris Quade (66528)
+// =============================================================================
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Functionality: Weist die logischen Befehle (DB1.Cmd) den physikalischen 
+//                Ausgängen zu und realisiert Hardware-Verriegelungen.
+// -----------------------------------------------------------------------------
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+BEGIN
+ IF DB1.Mode.Einrichten OR DB1.Mode.Automatik THEN
+    // X-Achse (Verriegelung)
+    IF DB1.Cmd.X_Achse_Links AND DB1.Cmd.X_Achse_Rechts THEN
+        "-QA5" := FALSE; "-QA6" := FALSE;
+    ELSE
+        "-QA5" := DB1.Cmd.X_Achse_Links AND NOT "-BG11"; 
+        "-QA6" := DB1.Cmd.X_Achse_Rechts AND NOT "-BG13";
+    END_IF;
+
+    // Zylinder MM20
+    IF DB1.Cmd.MM20_Einfahren AND DB1.Cmd.MM20_Ausfahren THEN
+        "-MB21" := FALSE; "-MB22" := FALSE;
+    ELSE
+        "-MB21" := DB1.Cmd.MM20_Einfahren; 
+        "-MB22" := DB1.Cmd.MM20_Ausfahren;
+    END_IF;
+
+    // Zylinder MM30
+    IF DB1.Cmd.MM30_Einfahren AND DB1.Cmd.MM30_Ausfahren THEN
+        "-MB31" := FALSE; "-MB32" := FALSE;
+    ELSE
+        "-MB31" := DB1.Cmd.MM30_Einfahren; 
+        "-MB32" := DB1.Cmd.MM30_Ausfahren;
+    END_IF;
+
+    // Zylinder MM40
+    IF DB1.Cmd.MM40_Einfahren AND DB1.Cmd.MM40_Ausfahren THEN
+        "-MB41" := FALSE; "-MB42" := FALSE;
+    ELSE
+        "-MB41" := DB1.Cmd.MM40_Einfahren; 
+        "-MB42" := DB1.Cmd.MM40_Ausfahren;
+    END_IF;
+
+    // Magnet (TRUE = Deaktivieren = Schütz anziehen)
+    "-QA61" := DB1.Cmd.Magnet_Deaktivieren;
+
+    ELSE
+    RETURN; // Keine Ausgabe, wenn kein Betrieb aktiv
+END_IF;
+END_FUNCTION_BLOCK

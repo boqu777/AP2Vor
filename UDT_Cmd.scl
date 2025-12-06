@@ -1,0 +1,22 @@
+// =============================================================================
+// Baustein:      UDT_Cmd
+// Functionality: UDT für Steuerbefehle an die Hardware
+// =============================================================================
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+TYPE UDT_Cmd
+    STRUCT
+        MM20_Einfahren  : BOOL;
+        MM20_Ausfahren  : BOOL;
+        MM30_Einfahren  : BOOL;
+        MM30_Ausfahren  : BOOL;
+        MM40_Einfahren  : BOOL;
+        MM40_Ausfahren  : BOOL;
+        X_Achse_Links   : BOOL;
+        X_Achse_Rechts  : BOOL;
+        Magnet_Deaktivieren      : BOOL;
+    END_STRUCT
+END_TYPE

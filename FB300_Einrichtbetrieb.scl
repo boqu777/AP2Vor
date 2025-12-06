@@ -1,0 +1,83 @@
+FUNCTION_BLOCK FB300
+TITLE = 'Einrichtbetrieb'
+// =============================================================================
+// Autor:         Boris Quade (66528)
+// =============================================================================
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Functionality: Manuelle Steuerung der Aktoren über Taster im Einrichtbetrieb.
+//                Sicherheits-Verriegelungen sind integriert.
+//                Magnet wird über Zeit-Impuls (TP) gesteuert.
+// -----------------------------------------------------------------------------
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+VAR
+    instTimerMagnet : TP; // SFB3 (Impuls) Timer für Magnet-Steuerung
+END_VAR
+
+BEGIN
+// -----------------------------------------------------------------------------
+// 0. Schutzbedingung
+// -----------------------------------------------------------------------------
+    IF NOT DB1.Mode.Einrichten THEN
+        instTimerMagnet(IN := FALSE, PT := T#0ms);
+        RETURN; 
+    END_IF;
+// -----------------------------------------------------------------------------
+// 1. X-Achse (Tippbetrieb mit Verriegelung)
+// -----------------------------------------------------------------------------
+    IF "-SJ6" AND NOT "-SJ7" AND NOT "-BG11" THEN
+        DB1.Cmd.X_Achse_Links := TRUE;
+    ELSE
+        DB1.Cmd.X_Achse_Links := FALSE;
+    END_IF;
+
+    IF "-SJ7" AND NOT "-SJ6" AND NOT "-BG13" THEN
+        DB1.Cmd.X_Achse_Rechts := TRUE;
+    ELSE
+        DB1.Cmd.X_Achse_Rechts := FALSE;
+    END_IF;
+// -----------------------------------------------------------------------------
+// 2. Zylinder MM20 (Magazin)
+// -----------------------------------------------------------------------------
+    DB1.Cmd.MM20_Einfahren := ("-SJ8" AND NOT "-SJ9" AND NOT "-BG21");
+    DB1.Cmd.MM20_Ausfahren := ("-SJ9" AND NOT "-SJ8" AND NOT "-BG22");
+// -----------------------------------------------------------------------------
+// 3. Zylinder MM30 (Wippe)
+// -----------------------------------------------------------------------------
+    IF NOT "-SJ10" AND NOT "-BG31" THEN
+         DB1.Cmd.MM30_Einfahren := TRUE;
+         DB1.Cmd.MM30_Ausfahren := FALSE;
+    ELSIF "-SJ10" AND NOT "-BG32" THEN
+         DB1.Cmd.MM30_Einfahren := FALSE;
+         DB1.Cmd.MM30_Ausfahren := TRUE;
+    ELSE
+         DB1.Cmd.MM30_Einfahren := FALSE;
+         DB1.Cmd.MM30_Ausfahren := FALSE;
+    END_IF;
+// -----------------------------------------------------------------------------
+// 4. Zylinder MM40 (Magnet-Zylinder)
+// -----------------------------------------------------------------------------
+    IF NOT "-SJ11" AND NOT "-BG41" THEN
+         DB1.Cmd.MM40_Einfahren := TRUE;
+         DB1.Cmd.MM40_Ausfahren := FALSE;
+    ELSIF "-SJ11" AND NOT "-BG42" THEN
+         DB1.Cmd.MM40_Einfahren := FALSE;
+         DB1.Cmd.MM40_Ausfahren := TRUE;
+    ELSE
+         DB1.Cmd.MM40_Einfahren := FALSE;
+         DB1.Cmd.MM40_Ausfahren := FALSE;
+    END_IF;
+// -----------------------------------------------------------------------------
+// 5. Magnet-Steuerung (Abwurf via Taster)
+// -----------------------------------------------------------------------------
+    instTimerMagnet(IN := "-SJ12", PT := T#5s);
+    DB1.Cmd.Magnet_Deaktivieren := instTimerMagnet.Q;
+
+END_FUNCTION_BLOCK
