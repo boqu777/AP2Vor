@@ -1,0 +1,70 @@
+ORGANIZATION_BLOCK OB1
+TITLE = 'Hauptzyklus'
+// =============================================================================
+// Autor:        Boris Quade (66528)
+// (c) Copyright 2025 All Rights Reserved
+// =============================================================================
+// Library:      AP2_Basis
+// Tested with:  CPU 314C-2 PN/DP
+// Engineering:  Step7 V5.6
+// Restrictions: Erfordert die Existenz der Instanz-DBs (DB10..DB600).
+// Functionality: Zyklischer Aufruf aller Funktionsbausteine.
+//                Dies ist der Einstiegspunkt des Anwenderprogramms.
+// Change log table:
+// | Version | Date       |  Expert              |   Changes applied
+// -----------------------------------------------------------------------------
+// | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// =============================================================================
+VERSION : '1.0'
+
+VAR_TEMP
+    // Reservierter Speicher für OB-Startinformationen (Standard S7)
+    info : ARRAY[0..19] OF BYTE; 
+END_VAR
+
+BEGIN
+    // -------------------------------------------------------------------------
+    // 1. Betriebsart und Freigaben ermitteln
+    // -------------------------------------------------------------------------
+    // FB0 liest die Hardware-Eingänge (Not-Halt, Taster) und schreibt
+    // den zentralen Status in DB1.
+    FB0.DB10(); 
+
+    // -------------------------------------------------------------------------
+    // 2. Taktgenerator
+    // -------------------------------------------------------------------------
+    // FB100 erzeugt den 1Hz-Blinktakt für die Leuchten.
+    FB100.DB100();
+
+    // -------------------------------------------------------------------------
+    // 3. Positionserfassung
+    // -------------------------------------------------------------------------
+    // FB1 wertet den Inkrementalgeber aus und aktualisiert die Ist-Position.
+    FB1.DB11(); 
+
+    // -------------------------------------------------------------------------
+    // 4. Handbetrieb (Einrichten)
+    // -------------------------------------------------------------------------
+    // FB300 verarbeitet die Tipp-Befehle, wenn "Einrichten" aktiv ist.
+    FB300.DB300();
+
+    // -------------------------------------------------------------------------
+    // 5. Automatikbetrieb (Ablauf)
+    // -------------------------------------------------------------------------
+    // FB500 steuert die Schrittkette, wenn "Automatik" aktiv ist.
+    FB500.DB500();
+
+    // -------------------------------------------------------------------------
+    // 6. Anzeige (HMI / Lampen)
+    // -------------------------------------------------------------------------
+    // FB200 steuert die Signalleuchten basierend auf dem DB1-Status.
+    FB200.DB200();
+
+    // -------------------------------------------------------------------------
+    // 7. Hardware-Ausgabe (Aktorik)
+    // -------------------------------------------------------------------------
+    // FB600 schreibt die logischen Befehle aus DB1 auf die physikalischen
+    // Ausgänge und übernimmt die letzte Hardware-Verriegelung.
+    FB600.DB600();
+
+END_ORGANIZATION_BLOCK

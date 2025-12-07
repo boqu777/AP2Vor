@@ -65,7 +65,7 @@ BEGIN
     statSchritt_Alt := statSchritt;
     // Positive Flanke von -SJ12 (Teil entnommen) bilden
     tempSJ12Ris := ("-SJ12" <> statsSJ12_Alt);
-    statSchritt_Alt := "-SJ12";
+    statsSJ12_Alt := "-SJ12";
 
     // ----------------------------------------------------------------------------
     // 2. Befehls-Reset
@@ -204,7 +204,7 @@ BEGIN
             instT_MM30_Aus(IN := "-BG32", PT := T#2s);
             IF instT_MM30_Aus.Q THEN
                 instT_MM30_Aus(IN := FALSE);
-                instT_MM30_Ein.Q := FALSE; 
+                instT_MM30_Aus.Q := FALSE; 
                 statSchritt := 508; // Zum gemeinsamen Ende
             END_IF;
 
