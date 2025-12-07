@@ -11,7 +11,7 @@
 // =============================================================================
 DATA_BLOCK DB2
 TITLE = 'Positionen'
-VERSION : '1.1'
+VERSION : 1.1
 
     STRUCT
         Pos1 : INT := 78; // Ablageposition Kunststoff 

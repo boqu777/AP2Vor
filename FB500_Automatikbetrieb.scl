@@ -94,10 +94,6 @@ BEGIN
         // Initialisierung der Status-Flags. Warten auf Starttaste, 
         // Grundstellung der Zylinder und Vorhandensein eines Teils im Magazin.
         500: 
-            IF tempSchrittInit THEN
-                DB1.Status.Teil_Kunststoff := FALSE;
-                DB1.Status.Teil_Metall     := FALSE;
-            END_IF;
 
             // In Grundstellung der Zylinder und X-Achse bringen
                 DB1.Cmd.MM20_Einfahren := NOT "-BG21";

@@ -20,13 +20,13 @@ VERSION : '1.1'
 
 VAR
    // instTimerMagnet : TP; // Magnet entfernt 
+END_VAR
 
-BEGIN
 // -----------------------------------------------------------------------------
 // 0. Schutzbedingung
 // -----------------------------------------------------------------------------
     IF NOT DB1.Mode.Einrichten THEN
-        instTimerMagnet(IN := FALSE, PT := T#0ms);
+        
         RETURN; 
     END_IF;
 // -----------------------------------------------------------------------------

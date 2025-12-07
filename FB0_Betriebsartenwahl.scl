@@ -36,6 +36,7 @@ BEGIN
     // 2. Betriebsart ermitteln
     // -------------------------------------------------------------------------
     // Zuerst beide Modi zurücksetzen (Sicherer Zustand)
+    
     DB1.Mode.Einrichten := FALSE;
     DB1.Mode.Automatik  := FALSE;
 

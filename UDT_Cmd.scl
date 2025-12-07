@@ -15,10 +15,9 @@ TYPE UDT_Cmd
         MM20_Ausfahren  : BOOL;
         MM30_Einfahren  : BOOL;
         MM30_Ausfahren  : BOOL;
-       // MM40_Einfahren  : BOOL; 
-       // MM40_Ausfahren  : BOOL;
+        MM40_Einfahren  : BOOL; 
+        MM40_Ausfahren  : BOOL;
         X_Achse_Links   : BOOL;
         X_Achse_Rechts  : BOOL;
-       // Magnet_Deaktivieren      : BOOL;
     END_STRUCT
 END_TYPE
