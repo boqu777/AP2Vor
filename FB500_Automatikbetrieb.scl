@@ -7,8 +7,10 @@ TITLE = 'Automatikbetrieb'
 // Tested with:   CPU 314C-2 PN/DP
 // Engineering:   Step7 V5.6
 // Functionality: Schrittkette für den automatischen Prozessablauf.
-//                Steuert die Sortierung nach Material (Kunststoff/Metall) 
-//                und Bohrung (mit/ohne).
+//                - Sortierung: 
+//                  Pos 1: Kunststoff -> Wippe
+//                  Pos 2: Metall m. Bohrung -> Stopp + Quittierung (-SJ12)
+//                  Pos 3: Metall o. Bohrung -> Durchlauf.
 // -----------------------------------------------------------------------------
 // Change log table:
 // | Version | Date       |  Expert              |   Changes applied
@@ -19,14 +21,14 @@ TITLE = 'Automatikbetrieb'
 // |         |            |                      |   -MM40 und Magnet entfernt
 // |         |            |                      |   Pos angepasst,
 // =============================================================================
-VERSION : '1.0'
+VERSION : '1.1'
 
 VAR
     // Statische Variablen 
     statSchritt     : INT := 500;       // Aktueller Schritt (Start = 500)
     statSchritt_Alt : INT;              // Für Flankenerkennung Schrittwechsel
     statSollPos     : INT;              // Zielposition für X-Achse
-    statsSJ12_Alt   : BOOL;               // Für Flankenerkennung SJ12
+    statsSJ12_Alt   : BOOL;             // Für Flankenerkennung SJ12
 
     // Timer Instanzen (TON = SFB4)
     instT_MM20_Aus  : TON;
@@ -39,7 +41,7 @@ END_VAR
 
 VAR_TEMP
     tempSchrittInit : BOOL; // Hilfsmerker: TRUE für einen Zyklus bei Schrittstart
-    tempSJ12Ris     : BOOL;     // Flankenerkennung für -SJ12
+    tempSJ12Ris     : BOOL; // Flankenerkennung für -SJ12
 END_VAR
 
 BEGIN
@@ -173,7 +175,7 @@ BEGIN
             instT_MM20_Ein(IN := "-BG21", PT := T#5s);
             IF instT_MM20_Ein.Q THEN
                  instT_MM20_Ein(IN := FALSE);
-
+                 instT_MM20_Ein.Q := FALSE; 
                  statSchritt := 506;
             END_IF;
 
@@ -206,6 +208,7 @@ BEGIN
             instT_MM30_Aus(IN := "-BG32", PT := T#2s);
             IF instT_MM30_Aus.Q THEN
                 instT_MM30_Aus(IN := FALSE);
+                instT_MM30_Ein.Q := FALSE; 
                 statSchritt := 508; // Zum gemeinsamen Ende
             END_IF;
 
@@ -214,12 +217,13 @@ BEGIN
         // -----------------------------------------------------------------------
         // Wippe (-MM30) einfahren.
         508: 
-            DB1.Cmd.MM30_Einfahren      := TRUE;
+            DB1.Cmd.MM30_Einfahren := TRUE;
            
             //Transition: Warten auf 1s Endlage BG31 -> 509
             instT_Wippe_Ein(IN := "-BG31", PT := T#1s);
             IF instT_Wippe_Ein.Q THEN
                 instT_Wippe_Ein(IN := FALSE);
+                instT_Wippe_Ein.Q := FALSE;
                 statSchritt := 509;
             END_IF;
 
