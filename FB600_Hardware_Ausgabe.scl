@@ -18,44 +18,65 @@ TITLE = 'Hardware_Ausgabe'
 // =============================================================================
 VERSION : '1.1'
 
+VAR_TEMP
+    // Hilfsvariable für bessere Lesbarkeit
+    temp_BetriebAktiv : BOOL; 
+END_VAR
+
 BEGIN
- IF DB1.Mode.Einrichten OR DB1.Mode.Automatik THEN
-    // X-Achse (Verriegelung)
-    IF DB1.Cmd.X_Achse_Links AND DB1.Cmd.X_Achse_Rechts THEN
-        "-QA5" := FALSE; "-QA6" := FALSE;
-    ELSE
-        "-QA5" := DB1.Cmd.X_Achse_Links AND NOT "-BG11"; 
-        "-QA6" := DB1.Cmd.X_Achse_Rechts AND NOT "-BG13";
-    END_IF;
+    // Sammelstatus: Ausgänge dürfen nur aktiv sein, wenn Einricht- oder Automatikbetrieb aktiv ist.
+    // Dies dient als globale Freigabe.
+    temp_BetriebAktiv := DB1.Mode.Einrichten OR DB1.Mode.Automatik;
 
-    // Zylinder MM20
-    IF DB1.Cmd.MM20_Einfahren AND DB1.Cmd.MM20_Ausfahren THEN
-        "-MB21" := FALSE; "-MB22" := FALSE;
-    ELSE
-        "-MB21" := DB1.Cmd.MM20_Einfahren; 
-        "-MB22" := DB1.Cmd.MM20_Ausfahren;
-    END_IF;
+    // -------------------------------------------------------------------------
+    // 1. X-Achse (Motor)
+    // -------------------------------------------------------------------------
+    // Logik: Befehl aktiv AND Gegensignal inaktiv (Verriegelung) AND Endschalter nicht belegt
+    
+    "-QA5" := DB1.Cmd.X_Achse_Links           // Befehl
+              AND NOT DB1.Cmd.X_Achse_Rechts  // Software-Verriegelung
+              AND NOT "-BG11"                 // Hardware-Endlage Links
+              AND temp_BetriebAktiv;          // Allgemeine Freigabe
 
-    // Zylinder MM30
-    IF DB1.Cmd.MM30_Einfahren AND DB1.Cmd.MM30_Ausfahren THEN
-        "-MB31" := FALSE; "-MB32" := FALSE;
-    ELSE
-        "-MB31" := DB1.Cmd.MM30_Einfahren; 
-        "-MB32" := DB1.Cmd.MM30_Ausfahren;
-    END_IF;
-(* Entfernt nach Umbau
-    // Zylinder MM40
-    IF DB1.Cmd.MM40_Einfahren AND DB1.Cmd.MM40_Ausfahren THEN
-        "-MB41" := FALSE; "-MB42" := FALSE;
-    ELSE
-        "-MB41" := DB1.Cmd.MM40_Einfahren; 
-        "-MB42" := DB1.Cmd.MM40_Ausfahren;
-    END_IF;
+    "-QA6" := DB1.Cmd.X_Achse_Rechts 
+              AND NOT DB1.Cmd.X_Achse_Links 
+              AND NOT "-BG13"                 // Hardware-Endlage Rechts
+              AND temp_BetriebAktiv;
 
-    // Magnet (TRUE = Deaktivieren = Schütz anziehen)
-    "-QA61" := DB1.Cmd.Magnet_Deaktivieren;
-*)
-    ELSE
-    RETURN; // Keine Ausgabe, wenn kein Betrieb aktiv
-END_IF;
+    // -------------------------------------------------------------------------
+    // 2. Pneumatik Zylinder MM20 (Magazin)
+    // -------------------------------------------------------------------------
+    // Hinweis: Bistabile Impulsventile benötigen gegenseitige Verriegelung
+    
+    "-MB21" := DB1.Cmd.MM20_Einfahren 
+               AND NOT DB1.Cmd.MM20_Ausfahren 
+               AND temp_BetriebAktiv;
+
+    "-MB22" := DB1.Cmd.MM20_Ausfahren 
+               AND NOT DB1.Cmd.MM20_Einfahren 
+               AND temp_BetriebAktiv;
+
+    // -------------------------------------------------------------------------
+    // 3. Zylinder MM30 (Wippe)
+    // -------------------------------------------------------------------------
+    "-MB31" := DB1.Cmd.MM30_Einfahren 
+               AND NOT DB1.Cmd.MM30_Ausfahren 
+               AND temp_BetriebAktiv;
+
+    "-MB32" := DB1.Cmd.MM30_Ausfahren 
+               AND NOT DB1.Cmd.MM30_Einfahren 
+               AND temp_BetriebAktiv;
+
+    (*  Zylinder -MM40 und Magnet entfernt
+    // -------------------------------------------------------------------------
+    // 4. Zylinder MM40 (Magnet-Zylinder)
+    // -------------------------------------------------------------------------
+    "-MB41" := DB1.Cmd.MM40_Einfahren 
+               AND NOT DB1.Cmd.MM40_Ausfahren 
+               AND temp_BetriebAktiv;
+
+    "-MB42" := DB1.Cmd.MM40_Ausfahren 
+               AND NOT DB1.Cmd.MM40_Einfahren 
+               AND temp_BetriebAktiv;
+    *)
 END_FUNCTION_BLOCK
