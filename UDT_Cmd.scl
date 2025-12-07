@@ -6,6 +6,8 @@
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -MM40 und Magnet entfernt
 // =============================================================================
 TYPE UDT_Cmd
     STRUCT
@@ -13,10 +15,10 @@ TYPE UDT_Cmd
         MM20_Ausfahren  : BOOL;
         MM30_Einfahren  : BOOL;
         MM30_Ausfahren  : BOOL;
-        MM40_Einfahren  : BOOL;
-        MM40_Ausfahren  : BOOL;
+       // MM40_Einfahren  : BOOL; 
+       // MM40_Ausfahren  : BOOL;
         X_Achse_Links   : BOOL;
         X_Achse_Rechts  : BOOL;
-        Magnet_Deaktivieren      : BOOL;
+       // Magnet_Deaktivieren      : BOOL;
     END_STRUCT
 END_TYPE

@@ -16,8 +16,10 @@ TITLE = 'Anzeige'
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) | -PF5 -PF14 -PF33, -PF2 angepasst
 // =============================================================================
-VERSION : '1.0'
+VERSION : '1.1'
 
 BEGIN
     // -------------------------------------------------------------------------
@@ -46,7 +48,7 @@ BEGIN
     
     // PF2: Grundstellung
     // Leuchtet, wenn alle Zylinder in Grundstellung sind und Magnet an ist.
-    "-PF2" := "-BG13" AND "-BG21" AND "-BG31" AND "-BG41" AND NOT "-QA61";
+    "-PF2" := "-BG13" AND "-BG21" AND "-BG31";
 
     // PF3: Betriebsart
     // Einrichtbetrieb = Dauerlicht
@@ -63,9 +65,8 @@ BEGIN
     // Leuchtet, wenn Druckwächter -BP1 aktiv ist.
     "-PF4" := "-BP1";
 
-    // PF5: Motorschutz
-    // Leuchtet, wenn Motorschutz -FC7 ausgelöst hat (Öffner-Logik beachten).
-    "-PF5" := NOT "-FC7";
+    // PF5: Nicht in Gebrauch (Reservelampe)
+    // "-PF5" := NOT "-FC7";
 
     // -------------------------------------------------------------------------
     // 3. Bewegungsanzeigen
@@ -95,7 +96,7 @@ BEGIN
     "-PF10" := "-BG21"; // MM20 eingefahren
     "-PF11" := "-BG22"; // MM20 ausgefahren
     "-PF12" := "-BG31"; // MM30 eingefahren (Wippe)
-    "-PF14" := "-BG41"; // MM40 eingefahren (Magnetzylinder)
+    //"-PF14" := "-BG41"; // MM40 eingefahren (Magnetzylinder) // Nicht in Gebrauch
 
     // -------------------------------------------------------------------------
     // 6. Prozessstatus
@@ -105,8 +106,7 @@ BEGIN
     // Leuchtet, wenn keine Teileerkennung aktiv ist
     "-PF32" := (NOT "-BG51" AND "-BG52"); 
 
-    // PF33: Magnet deaktiviert
-    // Leuchtet, wenn Schütz angezogen ist
-    "-PF33" := "-QA61";
+    // PF33: Nicht in Gebrauch (Reservelampe)
+    //"-PF33" := "-QA61";
 
 END_FUNCTION_BLOCK

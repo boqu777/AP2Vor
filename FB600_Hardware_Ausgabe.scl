@@ -13,8 +13,10 @@ TITLE = 'Hardware_Ausgabe'
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -MM40 und Magnet entfernt
 // =============================================================================
-VERSION : '1.0'
+VERSION : '1.1'
 
 BEGIN
  IF DB1.Mode.Einrichten OR DB1.Mode.Automatik THEN
@@ -41,7 +43,7 @@ BEGIN
         "-MB31" := DB1.Cmd.MM30_Einfahren; 
         "-MB32" := DB1.Cmd.MM30_Ausfahren;
     END_IF;
-
+(* Entfernt nach Umbau
     // Zylinder MM40
     IF DB1.Cmd.MM40_Einfahren AND DB1.Cmd.MM40_Ausfahren THEN
         "-MB41" := FALSE; "-MB42" := FALSE;
@@ -52,7 +54,7 @@ BEGIN
 
     // Magnet (TRUE = Deaktivieren = Schütz anziehen)
     "-QA61" := DB1.Cmd.Magnet_Deaktivieren;
-
+*)
     ELSE
     RETURN; // Keine Ausgabe, wenn kein Betrieb aktiv
 END_IF;

@@ -8,18 +8,18 @@ TITLE = 'Einrichtbetrieb'
 // Engineering:   Step7 V5.6
 // Functionality: Manuelle Steuerung der Aktoren über Taster im Einrichtbetrieb.
 //                Sicherheits-Verriegelungen sind integriert.
-//                Magnet wird über Zeit-Impuls (TP) gesteuert.
 // -----------------------------------------------------------------------------
 // Change log table:
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -MM40 und Magnet entfernt
 // =============================================================================
-VERSION : '1.0'
+VERSION : '1.1'
 
 VAR
-    instTimerMagnet : TP; // SFB3 (Impuls) Timer für Magnet-Steuerung
-END_VAR
+   // instTimerMagnet : TP; // Magnet entfernt 
 
 BEGIN
 // -----------------------------------------------------------------------------
@@ -61,6 +61,8 @@ BEGIN
          DB1.Cmd.MM30_Einfahren := FALSE;
          DB1.Cmd.MM30_Ausfahren := FALSE;
     END_IF;
+
+(*  Zylinder -MM40 und Magnet entfernt
 // -----------------------------------------------------------------------------
 // 4. Zylinder MM40 (Magnet-Zylinder)
 // -----------------------------------------------------------------------------
@@ -79,5 +81,5 @@ BEGIN
 // -----------------------------------------------------------------------------
     instTimerMagnet(IN := "-SJ12", PT := T#5s);
     DB1.Cmd.Magnet_Deaktivieren := instTimerMagnet.Q;
-
+*)
 END_FUNCTION_BLOCK

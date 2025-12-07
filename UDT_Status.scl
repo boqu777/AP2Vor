@@ -8,12 +8,14 @@
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   Materialflags entfernt
 // =================================================================================
 TYPE UDT_Status
     STRUCT
         IstPosition     : INT;  // Aktuelle Position der X-Achse
-        Teil_Kunststoff : BOOL; // Erkanntes Teil: Kunststoff
-        Teil_Metall     : BOOL; // Erkanntes Teil: Metall
+        //Teil_Kunststoff : BOOL; // Erkanntes Teil: Kunststoff
+        //Teil_Metall     : BOOL; // Erkanntes Teil: Metall
         Takt_1Hz        : BOOL; // Blinktakt 1Hz
         Anlage_Bereit   : BOOL; // Sammelfreigabe (Not-Halt, Druck etc. OK)
     END_STRUCT

@@ -6,7 +6,7 @@ TITLE = 'Automatikbetrieb'
 // Library:       AP2_Basis
 // Tested with:   CPU 314C-2 PN/DP
 // Engineering:   Step7 V5.6
-// Functionality: Schrittkette (Sequencer) für den automatischen Prozessablauf.
+// Functionality: Schrittkette für den automatischen Prozessablauf.
 //                Steuert die Sortierung nach Material (Kunststoff/Metall) 
 //                und Bohrung (mit/ohne).
 // -----------------------------------------------------------------------------
@@ -14,53 +14,59 @@ TITLE = 'Automatikbetrieb'
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -SJ12 quttierung ergänzt 
+// |         |            |                      |   -MM40 und Magnet entfernt
+// |         |            |                      |   Pos angepasst,
 // =============================================================================
 VERSION : '1.0'
 
 VAR
-    // Statische Variablen (Gedächtnis)
+    // Statische Variablen 
     statSchritt     : INT := 500;       // Aktueller Schritt (Start = 500)
     statSchritt_Alt : INT;              // Für Flankenerkennung Schrittwechsel
     statSollPos     : INT;              // Zielposition für X-Achse
+    statsSJ12_Alt   : BOOL;               // Für Flankenerkennung SJ12
 
     // Timer Instanzen (TON = SFB4)
     instT_MM20_Aus  : TON;
     instT_MM20_Ein  : TON;
     instT_MM30_Aus  : TON;
-    instT_MM40_Aus  : TON;
-    instT_MM40_Ein  : TON;
-    instT_Magnet    : TON;
+    //instT_MM40_Aus  : TON; MM40 entfernt
+    //instT_MM40_Ein  : TON;
     instT_Wippe_Ein : TON;
 END_VAR
 
 VAR_TEMP
     tempSchrittInit : BOOL; // Hilfsmerker: TRUE für einen Zyklus bei Schrittstart
+    tempSJ12Ris     : BOOL;     // Flankenerkennung für -SJ12
 END_VAR
 
 BEGIN
     // ----------------------------------------------------------------------------
-    // 0. Reset bei Inaktivität (Schutzbedingung)
+    // 0. Reset bei Inaktivität
     // ----------------------------------------------------------------------------
     IF NOT DB1.Mode.Automatik THEN
         statSchritt := 500;
         // Alle Timer zurücksetzen für sauberen Neustart
         instT_MM20_Aus(IN:=FALSE); instT_MM20_Ein(IN:=FALSE);
-        instT_MM30_Aus(IN:=FALSE); instT_MM40_Aus(IN:=FALSE);
-        instT_MM40_Ein(IN:=FALSE); instT_Magnet(IN:=FALSE);
-        instT_Wippe_Ein(IN:=FALSE);
+        instT_MM30_Aus(IN:=FALSE); instT_Wippe_Ein(IN:=FALSE);
         // Bearbeitung beenden, keine Befehle schreiben
         RETURN; 
     END_IF;
 
     // ----------------------------------------------------------------------------
-    // 1. Initialisierung Schrittwechsel (Flankenerkennung)
+    // 1. Initialisierung & Flankenerkennung
     // ----------------------------------------------------------------------------
     // tempSchrittInit ist genau einen Zyklus lang TRUE, wenn der Schritt wechselt
     tempSchrittInit := (statSchritt <> statSchritt_Alt);
     statSchritt_Alt := statSchritt;
+    // Positive Flanke von -SJ12 (Teil entnommen) bilden
+    tempSJ12Ris := ("-SJ12" <> statsSJ12_Alt);
+    statSchritt_Alt := "-SJ12";
 
     // ----------------------------------------------------------------------------
-    // 2. Befehls-Reset (N-Aktion Logik)
+    // 2. Befehls-Reset
     // ----------------------------------------------------------------------------
     // Alle Befehle standardmäßig auf FALSE setzen.
     // Sie werden im aktiven Schritt explizit auf TRUE gesetzt.
@@ -70,12 +76,13 @@ BEGIN
     DB1.Cmd.MM20_Ausfahren      := FALSE;
     DB1.Cmd.MM30_Einfahren      := FALSE;
     DB1.Cmd.MM30_Ausfahren      := FALSE;
-    DB1.Cmd.MM40_Einfahren      := FALSE;
-    DB1.Cmd.MM40_Ausfahren      := FALSE;
-    DB1.Cmd.Magnet_Deaktivieren := FALSE; // Default: Magnet hält (FALSE)
+    //Entfernt nach Umbau
+    //DB1.Cmd.MM40_Einfahren      := FALSE;
+    //DB1.Cmd.MM40_Ausfahren      := FALSE;
+    //DB1.Cmd.Magnet_Deaktivieren := FALSE; 
 
     // ============================================================================
-    // 3. Schrittkette (Sequencer)
+    // 3. Schrittkette 
     // ============================================================================
     CASE statSchritt OF
         
@@ -93,11 +100,11 @@ BEGIN
             // In Grundstellung der Zylinder und X-Achse bringen
                 DB1.Cmd.MM20_Einfahren := NOT "-BG21";
                 DB1.Cmd.MM30_Einfahren := NOT "-BG31";
-                DB1.Cmd.MM40_Einfahren := NOT "-BG41";
+                //DB1.Cmd.MM40_Einfahren := NOT "-BG41"; entfernt nach Umbau
                 DB1.Cmd.X_Achse_Rechts := NOT "-BG13";
 
             // Transition: Start (-SJ5) UND Grundstellung UND Teil im Magazin
-            IF "-SJ5" AND "-BG13" AND "-BG21" AND "-BG31" AND "-BG41" AND ("-BG51" OR NOT "-BG52") THEN
+            IF "-SJ5" AND "-BG13" AND "-BG21" AND "-BG31" AND ("-BG51" OR NOT "-BG52") THEN
                 statSchritt := 501;
             END_IF;
 
@@ -107,7 +114,8 @@ BEGIN
         // Auswertung der Sensoren (Induktiv/Optisch) zur Materialbestimmung.
         // Festlegen der Sollposition aus DB2 "Positionen".
         501: 
-            //(Schritt 502) Fall 1: Metall mit Bohrung (BG51=1, BG52=1) -> Pos 2 
+
+            //(Schritt 502) Fall 1: Metall m. Bohrung (BG51=1, BG52=1) -> Pos 2 
             IF ("-BG51" AND "-BG52") THEN
                 statSollPos := DB2.Pos2; 
                 statSchritt := 503;
@@ -115,13 +123,11 @@ BEGIN
             //(Schritt 502a) Fall 2: Kunststoff (BG51=0, BG52=0) -> Pos 1
             ELSIF (NOT "-BG51" AND NOT "-BG52") THEN
                 statSollPos := DB2.Pos1;
-                DB1.Status.Teil_Kunststoff := TRUE;
                 statSchritt := 503;
             
-            //(Schritt 502b) Fall 3: Metall ohne Bohrung (BG51=1, BG52=0) -> Pos 1
+            //(Schritt 502b) Fall 3: Metall o. Bohrung (BG51=1, BG52=0) -> Pos 3
             ELSIF ("-BG51" AND NOT "-BG52") THEN
-                statSollPos := DB2.Pos1;
-                DB1.Status.Teil_Metall := TRUE;
+                statSollPos := DB2.Pos3; //Nach Umbau auf Pos3
                 statSchritt := 503;
             END_IF;
 
@@ -129,6 +135,7 @@ BEGIN
         // Schritt 503: Positionieren
         // ------------------------------------------------------------------------
         // Motor Linkslauf aktivieren, bis Ist-Position = Soll-Position.
+        // Inkrementelle Positionsbestimmung erfolgt in FB1
         503: 
             DB1.Cmd.X_Achse_Links := TRUE;
         
@@ -138,10 +145,8 @@ BEGIN
             END_IF;
 
         // -----------------------------------------------------------------------
-        // Schritt 504: Teil aus dem Magazin Soll-Position ablegen (Ausfahren)
+        // Schritt 504: Teil ausschieben (MM20 Aus)
         // -----------------------------------------------------------------------
-        // Zylinder MM20 ausfahren, um Teil aus Magazin zu schieben. 
-        // Wartezeit 1s.
         504: 
             
             instT_MM20_Aus(IN := TRUE, PT := T#1s);
@@ -155,9 +160,9 @@ BEGIN
                 instT_MM20_Ein.Q := FALSE; // Timer Reset
                 statSchritt := 505; 
             END_IF;
-            
+
         // -----------------------------------------------------------------------
-        // Schritt 505: Magazinzylinder wieder einfahren (Einfahren)
+        // Schritt 505: Ausschieber einfahren (MM20 Ein)
         // -----------------------------------------------------------------------
         // Zylinder MM20 einfahren. Warten bis Endlage BG21 + 5s Verzögerung.
         505: 
@@ -173,17 +178,20 @@ BEGIN
             END_IF;
 
         // -----------------------------------------------------------------------
-        // Schritt 506: Weiche / Entscheidung
+        // Schritt 506: Verzweigung nach Position
         // -----------------------------------------------------------------------
-        // Verzweigung in die entsprechenden Unter-Abläufe
-        // basierend auf dem erkannten Material.
+        // Verzweigung in die entsprechenden Unter-Abläufe je nach Zielposition.
         506: 
-            IF DB1.Status.Teil_Kunststoff THEN
-                statSchritt := 507; // Zweig Kunststoff
-            ELSIF DB1.Status.Teil_Metall THEN
-                statSchritt := 517; // Zweig Metall ohne Bohrung (Schritt 507a)
-            ELSE
-                // Metall mit Bohrung (Pos 2): liegt richtig, direkt Rückfahrt
+            // Pos 1 (Kunststoff): Abwurf über Wippe
+            IF (statSollPos = DB2.Pos1) THEN
+                statSchritt := 507; 
+
+            // Pos 2 (Metall m. Bohrung): Stopp & Quittierung    
+            ELSIF (statSollPos = DB2.Pos2) THEN
+                statSchritt := 517; // Interner Schritt für 507a
+
+            // Pos 3 (Metall o. Bohrung): Direkt weiter 
+            ELSIF (statSollPos = DB2.Pos3) THEN
                 statSchritt := 509; 
             END_IF;
 
@@ -201,56 +209,12 @@ BEGIN
                 statSchritt := 508; // Zum gemeinsamen Ende
             END_IF;
 
-        // ------------------------------------------------------------------------
-        // Schritt 507a: Metall-Abwurf (1/3) - Holen
-        // ------------------------------------------------------------------------
-        // Magnetzylinder (MM40) ausfahren zur Abholposition.
-        517: //507a
-            DB1.Cmd.MM40_Ausfahren := TRUE;
-            
-            //Transition: Warten auf 2s Endlage BG42
-            instT_MM40_Aus(IN := "-BG42", PT := T#2s);
-            IF instT_MM40_Aus.Q THEN
-                instT_MM40_Aus(IN := FALSE);
-                statSchritt := 527;
-            END_IF;
-
         // -----------------------------------------------------------------------
-        // Schritt 507b: Metall-Abwurf (2/3) - Zurückziehen
+        // Schritt 508: Wippe schließen
         // -----------------------------------------------------------------------
-        // Magnetzylinder (MM40) einfahren (Teil wird durch Permanentmagnet gehalten).
-        527: //507b
-            DB1.Cmd.MM40_Einfahren := TRUE;
-            
-            //Transition: Warten auf 2s Endlage BG41 -> 507c
-            instT_MM40_Ein(IN := "-BG41", PT := T#2s);
-            IF instT_MM40_Ein.Q THEN
-                instT_MM40_Ein(IN := FALSE);
-                statSchritt := 537;
-            END_IF;
-
-        // ------------------------------------------------------------------------
-        // Schritt 507c: Metall-Abwurf (3/3) - Abwerfen
-        // ------------------------------------------------------------------------
-        // Magnet deaktivieren (Schütz an) und Wippe öffnen, damit Teil von der Wippe fällt.
-        537: //507c 
-            DB1.Cmd.Magnet_Deaktivieren := TRUE; // Spule an -> Magnet aus
-            DB1.Cmd.MM30_Ausfahren      := TRUE; // Wippe auf
-            
-            //Transition: Warten auf 2s Endlage BG32 -> 508
-            instT_Magnet(IN := "-BG32", PT := T#2s);
-            IF instT_Magnet.Q THEN
-                instT_Magnet(IN := FALSE);
-                statSchritt := 508;
-            END_IF;
-
-        // -----------------------------------------------------------------------
-        // Schritt 508: Gemeinsames Ende / Wippe schließen
-        // -----------------------------------------------------------------------
-        // Wippe (MM30) einfahren und Magnet wieder aktivieren (Grundzustand).
+        // Wippe (-MM30) einfahren.
         508: 
             DB1.Cmd.MM30_Einfahren      := TRUE;
-            DB1.Cmd.Magnet_Deaktivieren := FALSE; // Magnet wieder aktiv
            
             //Transition: Warten auf 1s Endlage BG31 -> 509
             instT_Wippe_Ein(IN := "-BG31", PT := T#1s);
@@ -258,6 +222,16 @@ BEGIN
                 instT_Wippe_Ein(IN := FALSE);
                 statSchritt := 509;
             END_IF;
+
+        // -----------------------------------------------------------------------
+        // Schritt 507a (Intern 517): Warten auf Quittierung 
+        // -----------------------------------------------------------------------
+        517:
+            // Anlage stoppt hier. Keine Aktor-Ansteuerung.
+            // Warten auf positive Flanke von -SJ12 "Teil entnommen"
+            IF tempSJ12Ris THEN
+                statSchritt := 509;
+            END_IF;   
 
         // -----------------------------------------------------------------------
         // Schritt 509: Rückfahrt
@@ -279,12 +253,10 @@ BEGIN
 
              //Transition: Fall 1: Magazin leer -> Grundstellung und Stop
              IF ("-BG21" AND NOT "-BG51" AND "-BG52") THEN
-                 statSchritt := 500;
+                 statSchritt := 500; // Grundstellung & Stop
              
              //Transition: Fall 2: Noch Teile da -> Automatischer Neustart
              ELSIF ("-BG21" AND ("-BG51" OR NOT "-BG52")) THEN
-                 DB1.Status.Teil_Kunststoff := FALSE;
-                 DB1.Status.Teil_Metall     := FALSE;
                  statSchritt := 501;
              END_IF;
 

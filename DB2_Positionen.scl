@@ -6,16 +6,18 @@
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
+// -----------------------------------------------------------------------------
+// | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   Pos3 Kommentar angepasst
 // =============================================================================
 DATA_BLOCK DB2
 TITLE = 'Positionen'
-VERSION : '1.0'
+VERSION : '1.1'
 
     STRUCT
-        Pos1 : INT := 100; // Ablageposition Kunststoff / Metall ohne Bohrung
-        Pos2 : INT := 75;  // Ablageposition Metall mit Bohrung
-        Pos3 : INT := 50;  // Reserve
-        Pos4 : INT := 25;  // Reserve
+        Pos1 : INT := 78; // Ablageposition Kunststoff 
+        Pos2 : INT := 53; // Ablageposition Metall ohne Bohrung
+        Pos3 : INT := 31; // Ablageposition Metall mit Bohrung
+        Pos4 : INT := 6;  // Reserve
     END_STRUCT
 
 BEGIN
