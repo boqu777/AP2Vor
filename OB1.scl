@@ -1,15 +1,15 @@
 ORGANIZATION_BLOCK OB1
 TITLE = 'Hauptzyklus'
 // =============================================================================
-// Autor:        Boris Quade (66528)
-// (c) Copyright 2025 All Rights Reserved
+// Autor:         Boris Quade (66528)
 // =============================================================================
-// Library:      AP2_Basis
-// Tested with:  CPU 314C-2 PN/DP
-// Engineering:  Step7 V5.6
-// Restrictions: Erfordert die Existenz der Instanz-DBs (DB10..DB600).
+// Library:       AP2_Basis
+// Tested with:   CPU 314C-2 PN/DP
+// Engineering:   Step7 V5.6
+// Restrictions:  Erfordert die Existenz der Instanz-DBs (DB10..DB600).
 // Functionality: Zyklischer Aufruf aller Funktionsbausteine.
 //                Dies ist der Einstiegspunkt des Anwenderprogramms.
+//
 // Change log table:
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
