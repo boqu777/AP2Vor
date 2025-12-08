@@ -39,14 +39,13 @@ BEGIN
               AND temp_BetriebAktiv;          // Allgemeine Freigabe
 
     "-QA6" := DB1.Cmd.X_Achse_Rechts 
-              AND NOT DB1.Cmd.X_Achse_Links 
+              AND NOT DB1.Cmd.X_Achse_Links   // Software-Verriegelung
               AND NOT "-BG13"                 // Hardware-Endlage Rechts
               AND temp_BetriebAktiv;
 
     // -------------------------------------------------------------------------
     // 2. Pneumatik Zylinder MM20 (Magazin)
     // -------------------------------------------------------------------------
-    // Hinweis: Bistabile Impulsventile benötigen gegenseitige Verriegelung
     
     "-MB21" := DB1.Cmd.MM20_Einfahren 
                AND NOT DB1.Cmd.MM20_Ausfahren 
