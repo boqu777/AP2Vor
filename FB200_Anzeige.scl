@@ -12,6 +12,8 @@ TITLE = 'Anzeige'
 //                - Betriebsartenanzeige (Dauerlicht/Blinken)
 //                - Fehleranzeige
 //                - Positionsmeldung
+//                - Zentrierbohrung erkannt/nicht erkannt
+// -----------------------------------------------------------------------------
 // Change log table:
 // | Version | Date       |  Expert              |   Changes applied
 // -----------------------------------------------------------------------------
@@ -19,8 +21,8 @@ TITLE = 'Anzeige'
 // -----------------------------------------------------------------------------
 // | 01.01.00| 08.12.2025 |  Boris Quade (66528) | -PF5 -PF14 -PF33, -PF2 angepasst
 // | 01.02.00| 24.01.2026 |  Boris Quade (66528) | -PF5 und -PF33 Zentrierbohrung 
-//                                                  erkannt/nicht erkannt, _PF14
-//                                                  wieder als -MM40 eingefahren
+//                                                  erkannt/nicht erkannt, -PF14
+//                                                  jetzt als -MM40 eiausgefahren
 // =============================================================================
 VERSION : '1.2'
 
@@ -94,7 +96,7 @@ BEGIN
               (DB1.Status.IstPosition = DB2.Pos2) OR 
               (DB1.Status.IstPosition = DB2.Pos3) OR 
               (DB1.Status.IstPosition = DB2.Pos4);
-              
+
     // -------------------------------------------------------------------------
     // 5. Zylinderstatus (Direktanzeige Sensoren)
     // -------------------------------------------------------------------------
@@ -108,7 +110,7 @@ BEGIN
     // -------------------------------------------------------------------------
     
     // PF32: Magazin leer
-    // Leuchtet, wenn keine Teileerkennung aktiv ist
+    // Leuchtet, wenn kein Teil im Magazin erkannt wird
     "-PF32" := (NOT "-BG51" AND "-BG52"); 
 
     // PF33: Zentrierbohrung vorhanden / nicht vorhanden
