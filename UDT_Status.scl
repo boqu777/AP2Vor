@@ -10,11 +10,15 @@
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
 // -----------------------------------------------------------------------------
 // | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   Materialflags entfernt
+// | 01.02.00| 24.01.2026 |  Boris Quade (66528) |   2Hz Takt hinzugefügt, mzb/ozb hinzugefügt
 // =================================================================================
 TYPE UDT_Status
     STRUCT
         IstPosition     : INT;  // Aktuelle Position der X-Achse
         Takt_1Hz        : BOOL; // Blinktakt 1Hz
+        Takt_2Hz        : BOOL; // Blinktakt 2Hz
         Anlage_Bereit   : BOOL; // Sammelfreigabe (Not-Halt, Druck etc. OK)
+        mzb             : BOOL; // Merker für Material mit Zentrierbohrung
+        ozb             : BOOL; // Merker für Material ohne Zentrierbohrung
     END_STRUCT
 END_TYPE

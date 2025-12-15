@@ -15,8 +15,10 @@ TITLE = 'Einrichtbetrieb'
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
 // -----------------------------------------------------------------------------
 // | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -MM40 und Magnet entfernt
+// | 01.02.00| 24.01.2026 |  Boris Quade (66528) |   -MM40 als Pruefdornzylinder 
+// |         |            |                      |    implementiert
 // =============================================================================
-VERSION : '1.1'
+VERSION : '1.2'
 
 VAR
    // instTimerMagnet : TP; // Magnet entfernt 
@@ -62,9 +64,8 @@ END_VAR
          DB1.Cmd.MM30_Ausfahren := FALSE;
     END_IF;
 
-(*  Zylinder -MM40 und Magnet entfernt
 // -----------------------------------------------------------------------------
-// 4. Zylinder MM40 (Magnet-Zylinder)
+// 4. Zylinder MM40 (Prüfdornzylinder))
 // -----------------------------------------------------------------------------
     IF NOT "-SJ11" AND NOT "-BG41" THEN
          DB1.Cmd.MM40_Einfahren := TRUE;
@@ -76,10 +77,4 @@ END_VAR
          DB1.Cmd.MM40_Einfahren := FALSE;
          DB1.Cmd.MM40_Ausfahren := FALSE;
     END_IF;
-// -----------------------------------------------------------------------------
-// 5. Magnet-Steuerung (Abwurf via Taster)
-// -----------------------------------------------------------------------------
-    instTimerMagnet(IN := "-SJ12", PT := T#5s);
-    DB1.Cmd.Magnet_Deaktivieren := instTimerMagnet.Q;
-*)
 END_FUNCTION_BLOCK

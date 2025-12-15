@@ -15,8 +15,9 @@ TITLE = 'Hardware_Ausgabe'
 // | 01.00.00| 05.12.2025 |  Boris Quade (66528) |   Erste Version
 // -----------------------------------------------------------------------------
 // | 01.01.00| 08.12.2025 |  Boris Quade (66528) |   -MM40 und Magnet entfernt
+// | 01.02.00| 24.01.2026 |  Boris Quade (66528) |   -MM40 jetzt Pruefdornzylinder
 // =============================================================================
-VERSION : '1.1'
+VERSION : '1.2'
 
 VAR_TEMP
     // Hilfsvariable für bessere Lesbarkeit
@@ -66,9 +67,9 @@ BEGIN
                AND NOT DB1.Cmd.MM30_Einfahren 
                AND temp_BetriebAktiv;
 
-    (*  Zylinder -MM40 und Magnet entfernt
+    
     // -------------------------------------------------------------------------
-    // 4. Zylinder MM40 (Magnet-Zylinder)
+    // 4. Zylinder MM40 (Pruefdornzylinder)
     // -------------------------------------------------------------------------
     "-MB41" := DB1.Cmd.MM40_Einfahren 
                AND NOT DB1.Cmd.MM40_Ausfahren 
@@ -77,5 +78,5 @@ BEGIN
     "-MB42" := DB1.Cmd.MM40_Ausfahren 
                AND NOT DB1.Cmd.MM40_Einfahren 
                AND temp_BetriebAktiv;
-    *)
+    
 END_FUNCTION_BLOCK

@@ -26,8 +26,10 @@ TITLE = 'Automatikbetrieb'
 // -----------------------------------------------------------------------------
 // | 01.02.00| 08.12.2025 |  Boris Quade (66528)  |   Timer-Fix: Instanzen separiert
 // |         |            |                       |   und zentraler Reset eingefügt.
+// | 01.03.00| 24.01.2026 |  Boris Quade (66528)  |   OZB / MZB Erkennung 507a/b/c
+// |         |            |                       |   und -BG53 als Pos2 Sensor
 // =============================================================================
-VERSION : '1.2'
+VERSION : '1.3'
 
 VAR
     // =========================================================================
@@ -47,6 +49,9 @@ VAR
     instT_S505_Endlage   : TON; // Wartezeit Endlage "Eingefahren" (Schritt 505)
     instT_S507_Abwurf    : TON; // Zeit, die die Wippe offen bleibt (Schritt 507)
     instT_S508_Zu        : TON; // Zeit zum Schließen der Wippe (Schritt 508)
+    instT_S507a_ozb      : TON; // 3s -MB42 und -BG42 nicht =>OZB
+    instT_S507a_mzb      : TON; // -BG42 fuer 2 Sekunden => MZB
+    instT_S507d_Zu       : TON; // -BG41 fuer 2 Sekunden (MM40 wieder eingefahren)
 END_VAR
 
 VAR_TEMP
@@ -76,6 +81,9 @@ BEGIN
         instT_S505_Endlage(IN:=FALSE, PT:=T#0ms);
         instT_S507_Abwurf(IN:=FALSE, PT:=T#0ms);
         instT_S508_Zu(IN:=FALSE, PT:=T#0ms);
+        instT_S507a_ozb(IN:=FALSE, PT:=T#0ms);
+        instT_S507a_mzb(IN:=FALSE, PT:=T#0ms);
+        instT_S507d_Zu(IN:=FALSE, PT:=T#0ms);
         
         RETURN; // Baustein hier verlassen, Rest des Codes wird ignoriert.
     END_IF;
@@ -96,6 +104,9 @@ BEGIN
         instT_S505_Endlage(IN:=FALSE, PT:=T#0ms);
         instT_S507_Abwurf(IN:=FALSE, PT:=T#0ms);
         instT_S508_Zu(IN:=FALSE, PT:=T#0ms);
+        instT_S507a_ozb(IN:=FALSE, PT:=T#0ms);
+        instT_S507a_mzb(IN:=FALSE, PT:=T#0ms);
+        instT_S507d_Zu(IN:=FALSE, PT:=T#0ms);
     END_IF;
 
     // Flankenerkennung für Quittiertaster -SJ12
@@ -142,7 +153,7 @@ BEGIN
         // Schritt 501: Materialerkennung & Zielwahl
         // ---------------------------------------------------------------------
         501: 
-            // Hier wird entschieden, wohin die Achse fährt, basierend auf den Sensoren.
+            // Hier wird die Ziel Ablagepostion entschieden, basierend auf den Sensoren.
             
             // FALL 1: Metall MIT Bohrung (Induktiv=1, Lichtschranke=1) -> Pos 2
             IF ("-BG51" AND "-BG52") THEN
@@ -151,7 +162,7 @@ BEGIN
             
             // FALL 2: Kunststoff (Induktiv=0, Lichtschranke=0) -> Pos 1
             // Hinweis: Induktiv reagiert nicht auf Kunststoff,
-            // Lichtschranke geht unterbrochen
+            // Lichtschranke wird unterbrochen
             ELSIF (NOT "-BG51" AND NOT "-BG52") THEN
                 statSollPos := DB2.Pos1;
                 statSchritt := 503;
@@ -215,9 +226,9 @@ BEGIN
             IF (statSollPos = DB2.Pos1) THEN
                 statSchritt := 507; 
 
-            // Pos 2 (Metall m. Bohrung): Bleibt liegen -> Bediener muss quittieren
-            ELSIF (statSollPos = DB2.Pos2) THEN
-                statSchritt := 517; // Sprung zur Warte-Schleife
+            // Pos 2 (Metall m. Bohrung): Wird auf Zentrierbohrung geprüft
+            ELSIF (statSollPos = DB2.Pos2) AND "-BG53" THEN // Teil auf Pos2 erkannt
+                statSchritt := 517; // Sprung zur Prüfung auf OZB / MZB
 
             // Pos 3 (Metall o. Bohrung): Fertig -> Rückfahrt
             ELSIF (statSollPos = DB2.Pos3) THEN
@@ -249,32 +260,61 @@ BEGIN
             END_IF;
 
         // ---------------------------------------------------------------------
-        // Schritt 507a (Intern Schritt 517): Manuelle Entnahme Quittierung
+        // Schritt 507a/b/c (Intern Schritt 517): Erkennung ob Teil mit oder ohne
+        // Zentrierbohrung auf Pos.2 liegt. (OZB / MZB)
         // ---------------------------------------------------------------------
         517:
             // Anlage wartet hier. Keine Ausgänge werden gesetzt.
             // Der Bediener entnimmt das Teil und drückt -SJ12.
-            
-            // TRANSITION: Positive Flanke Quittiertaster
-            IF tempSJ12Ris THEN
+            DB1.Cmd.MM40_Ausfahren := TRUE; // Pruefdornzylinder ausfahren
+            instT_S507a_mzb(IN := "-BG42", PT := T#2s)
+            instT_S507a_ozb(IN := TRUE, PT := T#3s);
+            IF instT_S507a_ozb.Q AND NOT "-BG42" THEN // 3s -MB42 und -BG42 nicht
+                  DB1.Status.OZB := TRUE; // OZB melden
+            ELSIF instT_S507a_mzb.Q AND "-BG42" THEN // -BG42 fuer 2 Sekunden
+                  DB1.Status.MZB := TRUE; // MZB melden
+            END_IF;
+            // TRANSITION: OZB oder MZB erkannt
+            IF DB1.Status.OZB OR DB1.Status.MZB THEN
+                statSchritt := 518; // 507d Wieder einfahren und auf Quittierung warten
+            END_IF;
+        // ---------------------------------------------------------------------
+        // Schritt 507d (Intern Schritt 518): Prüfdornzylinder wieder einfahren
+        // und auf Quittierung warten 
+        // ---------------------------------------------------------------------
+        518:
+            DB1.Cmd.MM40_Einfahren := TRUE; // Pruefdornzylinder einfahren
+            instT_S507d_Zu(IN:="-BG41", PT:=T#2s) // 2s eingefahren
+
+            // TRANSITION: Positive Flanke Quittiertaster -SJ12 und
+            // Pruefdornzylinder fuer 2s eingefahren
+            IF tempSJ12Ris and instT_S507d_Zu.Q THEN
                 statSchritt := 509; // Fertig -> Rückfahrt
-            END_IF;    
+            END_IF;   
+        
+        // ---------------------------------------------------------------------
+        // Schritt 509: Rücksetzen der OZB / MZB Signale
+        // ---------------------------------------------------------------------
+        509: 
+                DB1.Status.OZB := FALSE; // OZB zurücksetzen
+                DB1.Status.MZB := FALSE; // MZB zurücksetzen    
+                statSchritt := 510; // Weiter zur Rückfahrt
 
         // ---------------------------------------------------------------------
         // Schritt 509: Rückfahrt zur Referenz
         // ---------------------------------------------------------------------
-        509: 
+        510: 
             DB1.Cmd.X_Achse_Rechts := TRUE; // Fahre nach Rechts
             
             // TRANSITION: Referenzschalter (-BG13) erreicht
             IF "-BG13" THEN
-                statSchritt := 510;
+                statSchritt := 511;
             END_IF;
 
         // ---------------------------------------------------------------------
-        // Schritt 510: Zyklus-Ende Check
+        // Schritt 511: Zyklus-Ende Check
         // ---------------------------------------------------------------------
-        510: 
+        511: 
              // FALL 1: Magazin leer (Kein Teil mehr erkannt)
              // Anlage geht in Grundstellung (500) und wartet auf neuen Start.
              IF ("-BG21" AND NOT "-BG51" AND "-BG52") THEN
