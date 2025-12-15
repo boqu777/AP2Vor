@@ -94,14 +94,14 @@ BEGIN
               (DB1.Status.IstPosition = DB2.Pos2) OR 
               (DB1.Status.IstPosition = DB2.Pos3) OR 
               (DB1.Status.IstPosition = DB2.Pos4);
-
+              
     // -------------------------------------------------------------------------
     // 5. Zylinderstatus (Direktanzeige Sensoren)
     // -------------------------------------------------------------------------
     "-PF10" := "-BG21"; // MM20 eingefahren
     "-PF11" := "-BG22"; // MM20 ausgefahren
     "-PF12" := "-BG31"; // MM30 eingefahren (Wippe)
-    "-PF14" := "-BG41"; // MM40 eingefahren (jetzt Pruefdornzylinder)
+    "-PF14" := "-BG42"; // MM40 ausgefahren (jetzt Pruefdornzylinder)
 
     // -------------------------------------------------------------------------
     // 6. Prozessstatus

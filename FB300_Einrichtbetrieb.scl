@@ -46,12 +46,12 @@ END_VAR
         DB1.Cmd.X_Achse_Rechts := FALSE;
     END_IF;
 // -----------------------------------------------------------------------------
-// 2. Zylinder MM20 (Magazin)
+// 2. Zylinder -MM20 (Magazin)
 // -----------------------------------------------------------------------------
     DB1.Cmd.MM20_Einfahren := ("-SJ8" AND NOT "-SJ9" AND NOT "-BG21");
     DB1.Cmd.MM20_Ausfahren := ("-SJ9" AND NOT "-SJ8" AND NOT "-BG22");
 // -----------------------------------------------------------------------------
-// 3. Zylinder MM30 (Wippe)
+// 3. Zylinder -MM30 (Wippe)
 // -----------------------------------------------------------------------------
     IF NOT "-SJ10" AND NOT "-BG31" THEN
          DB1.Cmd.MM30_Einfahren := TRUE;
@@ -65,7 +65,7 @@ END_VAR
     END_IF;
 
 // -----------------------------------------------------------------------------
-// 4. Zylinder MM40 (Prüfdornzylinder))
+// 4. Zylinder -MM40 (Prüfdornzylinder))
 // -----------------------------------------------------------------------------
     IF NOT "-SJ11" AND NOT "-BG41" THEN
          DB1.Cmd.MM40_Einfahren := TRUE;
